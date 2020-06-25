@@ -14,6 +14,8 @@ use GroceryApp\Models\Category\Category;
 use GroceryApp\Models\Category\SubCategory;
 use GroceryApp\Models\Category\SubSubCategory;
 
+use Illuminate\Support\Facades\Config;
+
 class Product extends Model
 {
   use SoftDeletes;
@@ -73,7 +75,7 @@ class Product extends Model
   }
 
   public function getImageFullPathAttribute() {
-    return url(\Config::get('constants.img.IMAGE_DIR').'/'.\Config::get('constants.img.IMAGE_PRODUCT')).'/'.$this->product_image;
+    return url(Config::get('constants.img.IMAGE_DIR').'/'.Config::get('constants.img.IMAGE_PRODUCT')).'/'.$this->product_image;
   }
 
 }

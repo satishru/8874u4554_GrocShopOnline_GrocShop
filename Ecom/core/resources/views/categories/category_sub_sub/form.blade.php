@@ -1,6 +1,6 @@
 <form class="form_validation" method="POST" enctype="multipart/form-data" action={{ $action }}>
     @if( !empty($method) && in_array($method, ["PUT", "PATCH", "DELETE"]) )
-        {{ method_field($method) }} 
+        {{ method_field($method) }}
     @endif
 	{{ csrf_field() }}
 
@@ -16,8 +16,8 @@
 					  @endif
 						>
 						{{ $category->category_name }}
-					</option> 
-					@endforeach 
+					</option>
+					@endforeach
 				</select>
 				@if ($errors->formError->has('category_id'))
 				  <label class="error" for="category_id">{{ $errors->formError->first('category_id') }}</label>
@@ -41,7 +41,7 @@
 									  @endif
 										>
 										{{ $sub_category->sub_category_name }}
-									</option> 
+									</option>
 				         @endforeach
 					  	@endif
 						@endif
@@ -108,7 +108,7 @@
   <script type="text/javascript">
 	 $(document).ready(function() {
 
-	 	  var CATEGORY_DATA = @json($categories);
+	  var CATEGORY_DATA = @json($categories);
 
       $('#category_id').change(function() {
           var selected_id = $(this).val();
@@ -119,9 +119,9 @@
      					if(selected_id == category.category_id && category.sub_category != null) {
      						jQuery.each(category.sub_category, function(indexKey, sub_category) {
      							 sub_category_options += '<option value="'+sub_category.sub_category_id+'">'+sub_category.sub_category_name+'</option> ';
-     						}); 
+     						});
      					}
-						});  
+						});
 					}
 					html_input = '<select class="form-control selectSubCategory show-tick" name="sub_category_id" id="sub_category_id" required>'
 															+sub_category_options

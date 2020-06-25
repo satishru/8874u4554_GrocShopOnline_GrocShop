@@ -7,47 +7,50 @@ use Illuminate\Database\Eloquent\Model;
 
 use GroceryApp\Models\Product\Product;
 
+use Illuminate\Support\Facades\Config;
+
 class Brand extends Model
 {
-  use SoftDeletes;
+    use SoftDeletes;
 
-  protected $dates = ['deleted_at'];
+    protected $dates = ['deleted_at'];
 
-  protected $appends = ['image_full_path'];
+    protected $appends = ['image_full_path'];
 
-  protected $table =  'brands';
+    protected $table =  'brands';
 
-  /**
-   * The primary key for the model.
-   *
-   * @var string
-   */
-  protected $primaryKey = 'brand_id';
+    /**
+     * The primary key for the model.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'brand_id';
 
-  /**
-   * The attributes that are mass assignable.
-   *
-   * @var array
-   */
-  protected $fillable = [
-  	'brand_name', 'brand_image', 'meta_tag', 'meta_desc', 'added_by', 'added_ip', 'is_active'
-  ];
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'brand_name', 'brand_image', 'meta_tag', 'meta_desc', 'added_by', 'added_ip', 'is_active'
+    ];
 
-  /**
-   * The attributes that should be hidden for arrays.
-   *
-   * @var array
-   */
-  protected $hidden = [
-     'meta_tag', 'meta_desc', 'added_by','added_ip','created_at','updated_at', 'deleted_at'
-  ];
+    /**
+     * The attributes that should be hidden for arrays.
+     *
+     * @var array
+     */
+    protected $hidden = [
+        'meta_tag', 'meta_desc', 'added_by', 'added_ip', 'created_at', 'updated_at', 'deleted_at'
+    ];
 
-  public function brand() {
-      return $this->belongsTo(Product::class, 'unit_id');
-  }
+    public function brand()
+    {
+        return $this->belongsTo(Product::class, 'unit_id');
+    }
 
-  public function getImageFullPathAttribute() {
-    return url(\Config::get('constants.img.IMAGE_DIR').'/'.\Config::get('constants.img.IMAGE_BRAND')).'/'.$this->brand_image;
-  }
-  
+    public function getImageFullPathAttribute()
+    {
+        return url(Config::get('constants.img.IMAGE_DIR') . '/' . Config::get('constants.img.IMAGE_BRAND')) . '/' . $this->brand_image;
+    }
 }

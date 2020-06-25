@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Model;
 
 use GroceryApp\Models\Product\Product;
+use Illuminate\Support\Facades\Config;
 
 class ProductImage extends Model
 {
@@ -45,7 +46,7 @@ class ProductImage extends Model
   }
 
   public function getImageFullPathAttribute() {
-    return url(\Config::get('constants.img.IMAGE_DIR').'/'.\Config::get('constants.img.IMAGE_PRODUCT')).'/'.$this->product_image;
+    return url(Config::get('constants.img.IMAGE_DIR').'/'.Config::get('constants.img.IMAGE_PRODUCT')).'/'.$this->product_image;
   }
-  
+
 }

@@ -32,7 +32,8 @@ class ProductController extends Controller
     protected $SHOW_QUANTITY  = 'product.show_product_quantity';
     protected $ADD_IMAGES = 'product.add_images';
 
-    public function adminPanel() {
+    public function adminPanel()
+    {
         return $this->adminPanelPath($this->redirectTo);
     }
 
@@ -43,7 +44,7 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $products = Product::with('category', 'subCategory', 'subSubCategory', 'productQuantity', 'productQuantity.unit', 'productImages')->orderBy('product_id', 'DESC')->get(); 
+        $products = Product::with('category', 'subCategory', 'subSubCategory', 'productQuantity', 'productQuantity.unit', 'productImages')->orderBy('product_id', 'DESC')->get();
         $image_path = $this->getProductImagePathFull();
         return view($this->VIEW, compact('products', 'image_path'));
     }
@@ -60,15 +61,15 @@ class ProductController extends Controller
         $method = 'POST';
         $submit_text = "SUBMIT";
 
-        $categories = Category::has('subCategory', '>' , 0)->with([
-            'subCategory' => function($q){
+        $categories = Category::has('subCategory', '>', 0)->with([
+            'subCategory' => function ($q) {
                 $q->where('is_active', 1);
             },
-            'subCategory.subSubCategory' => function($q){
+            'subCategory.subSubCategory' => function ($q) {
                 $q->where('is_active', 1);
             }
-        ])->where('is_active', 1)->get(); 
-        
+        ])->where('is_active', 1)->get();
+
         $sub_categories = SubCategory::all()->where('is_active', 1);
         $sub_sub_categories = SubSubCategory::all()->where('is_active', 1);
 
@@ -86,35 +87,35 @@ class ProductController extends Controller
      */
     public function insertProduct(Request $request)
     {
-        if($request->ajax()) {
+        if ($request->ajax()) {
             $validator = Validator::make($request->all(), $this->getValidationRules(false));
             if ($validator->fails()) {
                 return $this->getJson(['error'  => $validator->errors()->all()]);
             }
 
-            $destinationPath = $this->getImagePath(); //public_path('/upload');
+            $destinationPath = $this->getImagePath();
 
             if ($request->hasFile('product_image')) {
                 try {
                     DB::beginTransaction();
                     $image = $request->file('product_image');
-                    $file_name = $this->getImageName().'.'.$image->getClientOriginalExtension();
+                    $file_name = $this->getImageName() . '.' . $image->getClientOriginalExtension();
                     $image->move($destinationPath, $file_name);
-                    
+
                     $product = Product::create([
-                        'brand_id' => $request->brand_id,  
-                        'category_id' => $request->category_id,  
-                        'sub_category_id' => $request->sub_category_id,  
-                        'sub_sub_category_id' => $request->sub_sub_category_id,  
-                        'product_name' => $request->product_name,  
-                        'product_description' => $request->product_description,  
-                        'items_in_stock' => $request->items_in_stock,  
+                        'brand_id' => $request->brand_id,
+                        'category_id' => $request->category_id,
+                        'sub_category_id' => $request->sub_category_id,
+                        'sub_sub_category_id' => $request->sub_sub_category_id,
+                        'product_name' => $request->product_name,
+                        'product_description' => $request->product_description,
+                        'items_in_stock' => $request->items_in_stock,
                         'product_image' => $file_name,
                         'in_stock' => ($request->in_stock == "on") ? 1 : 0,
                         'is_daily_essential' => ($request->is_daily_essential == "on") ? 1 : 0,
                         'is_top_selling' => ($request->is_top_selling == "on") ? 1 : 0,
-                        'meta_tag' => $request->meta_tag,   
-                        'meta_desc' => $request->meta_desc,  
+                        'meta_tag' => $request->meta_tag,
+                        'meta_desc' => $request->meta_desc,
                         'added_by' => $this->getUserId(),
                         'added_ip' => $this->getIp()
                     ]);
@@ -126,22 +127,22 @@ class ProductController extends Controller
                     $product_offer_percent_array = $request->product_offer_percent;
 
                     foreach ($items_multiplier_array as $index => $items_multiplier) {
-                       $quantity_data[] = [
-                        'product_id' => $product->product_id,
-                        'items_multiplier' => $items_multiplier_array[$index],
-                        'product_quantity'  => $product_quantity_array[$index],
-                        'unit_id'  => $unit_id_array[$index],
-                        'product_price'  => $product_price_array[$index],
-                        'product_offer_percent'  => $product_offer_percent_array[$index],
-                        'added_by' => $this->getUserId(),
-                        'added_ip' => $this->getIp()
-                       ];
+                        $quantity_data[] = [
+                            'product_id' => $product->product_id,
+                            'items_multiplier' => $items_multiplier_array[$index],
+                            'product_quantity'  => $product_quantity_array[$index],
+                            'unit_id'  => $unit_id_array[$index],
+                            'product_price'  => $product_price_array[$index],
+                            'product_offer_percent'  => $product_offer_percent_array[$index],
+                            'added_by' => $this->getUserId(),
+                            'added_ip' => $this->getIp()
+                        ];
                     }
                     ProductQuantity::insert($quantity_data);
 
                     if ($request->hasFile('product_other_images')) {
                         foreach ($request->file('product_other_images') as $key => $addnlImage) {
-                            $file_name = $this->getImageName().'.'.$addnlImage->getClientOriginalExtension();
+                            $file_name = $this->getImageName() . '.' . $addnlImage->getClientOriginalExtension();
                             $addnlImage->move($destinationPath, $file_name);
                             $image_data[] = [
                                 'product_id' => $product->product_id,
@@ -153,15 +154,12 @@ class ProductController extends Controller
                         ProductImage::insert($image_data);
                     }
                     DB::commit();
-                    /*return response()->json([
-                                   'success'  => 'Item saved successfully'
-                                ]);*/
                     return $this->getJson(['success'  => 'Item saved successfully']);
-                }  catch (\Exception $exception) {
+                } catch (\Exception $exception) {
                     DB::rollBack();
-                    $error[] = 'Error : Upload Failed '.$exception->getMessage();
+                    $error[] = 'Error : Upload Failed ' . $exception->getMessage();
                     return $this->getJson(['error'  => $error]);
-                }                
+                }
             } else {
                 $error[] = 'Unknown error occured.';
                 return $this->getJson(['error'  => $error]);
@@ -180,7 +178,7 @@ class ProductController extends Controller
      */
     public function updateProduct(Request $request, $id)
     {
-        if($request->ajax()) {
+        if ($request->ajax()) {
             $validator = Validator::make($request->all(), $this->getValidationRules(true));
             if ($validator->fails()) {
                 return $this->getJson(['error'  => $validator->errors()->all()]);
@@ -194,30 +192,30 @@ class ProductController extends Controller
 
             if ($request->hasFile('product_image')) {
                 $image = $request->file('product_image');
-                $file_name_new = $this->getImageName().'.'.$image->getClientOriginalExtension();
-                if($image->move($destinationPath, $file_name_new)) {
-                   $file_name = $file_name_new;
-                   $this->deleteFile($destinationPath, $file_name_old);
+                $file_name_new = $this->getImageName() . '.' . $image->getClientOriginalExtension();
+                if ($image->move($destinationPath, $file_name_new)) {
+                    $file_name = $file_name_new;
+                    $this->deleteFile($destinationPath, $file_name_old);
                 }
             }
 
             $product_data = [
-                        'brand_id' => $request->brand_id,  
-                        'category_id' => $request->category_id,  
-                        'sub_category_id' => $request->sub_category_id,  
-                        'sub_sub_category_id' => $request->sub_sub_category_id,  
-                        'product_name' => $request->product_name,  
-                        'product_description' => $request->product_description,  
-                        'items_in_stock' => $request->items_in_stock,  
-                        'product_image' => $file_name,
-                        'in_stock' => ($request->in_stock == "on") ? 1 : 0,
-                        'is_daily_essential' => ($request->is_daily_essential == "on") ? 1 : 0,
-                        'is_top_selling' => ($request->is_top_selling == "on") ? 1 : 0,
-                        'meta_tag' => $request->meta_tag,   
-                        'meta_desc' => $request->meta_desc,  
-                        'added_by' => $this->getUserId(),
-                        'added_ip' => $this->getIp()
-                    ];
+                'brand_id' => $request->brand_id,
+                'category_id' => $request->category_id,
+                'sub_category_id' => $request->sub_category_id,
+                'sub_sub_category_id' => $request->sub_sub_category_id,
+                'product_name' => $request->product_name,
+                'product_description' => $request->product_description,
+                'items_in_stock' => $request->items_in_stock,
+                'product_image' => $file_name,
+                'in_stock' => ($request->in_stock == "on") ? 1 : 0,
+                'is_daily_essential' => ($request->is_daily_essential == "on") ? 1 : 0,
+                'is_top_selling' => ($request->is_top_selling == "on") ? 1 : 0,
+                'meta_tag' => $request->meta_tag,
+                'meta_desc' => $request->meta_desc,
+                'added_by' => $this->getUserId(),
+                'added_ip' => $this->getIp()
+            ];
 
             Product::find($id)->update($product_data);
 
@@ -231,7 +229,7 @@ class ProductController extends Controller
 
             foreach ($quantity_id_array as $index => $quantity_id) {
                 $is_in_stock = (isset($quantity_in_stock_array[$index]) && $quantity_in_stock_array[$index] == "on") ? 1 : 0;
-                
+
                 $quantity_data = [
                     'product_id' => $id,
                     'items_multiplier' => $items_multiplier_array[$index],
@@ -245,7 +243,6 @@ class ProductController extends Controller
                 ];
                 ProductQuantity::find($quantity_id_array[$index])->update($quantity_data);
             }
-
             return $this->getJson(['success'  => 'Item saved successfully']);
         } else {
             $error[] = 'Unknown error occured !!';
@@ -259,13 +256,13 @@ class ProductController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function showProductQuantity($id) 
+    public function showProductQuantity($id)
     {
-        $product = Product::with('productQuantity', 'productQuantity.unit')->where('product_id', $id)->get()->first();  
-        $action  = route('product.insertProductQuantity',$product->product_id);
+        $product = Product::with('productQuantity', 'productQuantity.unit')->where('product_id', $id)->get()->first();
+        $action  = route('product.insertProductQuantity', $product->product_id);
         $is_show_quantity = true;
         $units = Units::all()->where('is_active', 1);
-        return view($this->SHOW_QUANTITY, compact('product', 'units', 'is_show_quantity' , 'action'));
+        return view($this->SHOW_QUANTITY, compact('product', 'units', 'is_show_quantity', 'action'));
     }
 
     /**
@@ -274,16 +271,16 @@ class ProductController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function insertProductQuantity(Request $request, $id) 
+    public function insertProductQuantity(Request $request, $id)
     {
-        if($request->ajax()) {
+        if ($request->ajax()) {
             $rules = [
-                     'items_multiplier.*'  => 'required|numeric',
-                     'product_quantity.*'  => 'required|numeric',
-                     'unit_id.*'  => 'required|numeric',
-                     'product_price.*'  => 'required|numeric',
-                     'product_offer_percent.*'  => 'required|numeric'
-                    ];
+                'items_multiplier.*'  => 'required|numeric',
+                'product_quantity.*'  => 'required|numeric',
+                'unit_id.*'  => 'required|numeric',
+                'product_price.*'  => 'required|numeric',
+                'product_offer_percent.*'  => 'required|numeric'
+            ];
             $validator = Validator::make($request->all(), $rules);
             if ($validator->fails()) {
                 return $this->getJson(['error'  => $validator->errors()->all()]);
@@ -296,7 +293,7 @@ class ProductController extends Controller
             $product_offer_percent_array = $request->product_offer_percent;
 
             foreach ($items_multiplier_array as $index => $items_multiplier) {
-                 $quantity_data[] = [
+                $quantity_data[] = [
                     'product_id' => $id,
                     'items_multiplier' => $items_multiplier_array[$index],
                     'product_quantity'  => $product_quantity_array[$index],
@@ -306,8 +303,8 @@ class ProductController extends Controller
                     'added_by' => $this->getUserId(),
                     'added_ip' => $this->getIp()
                 ];
-            } 
-            ProductQuantity::insert($quantity_data);  
+            }
+            ProductQuantity::insert($quantity_data);
             return $this->getJson(['success'  => 'Item saved successfully']);
         } else {
             $error[] = 'Unknown error occured !!';
@@ -325,7 +322,7 @@ class ProductController extends Controller
     {
         $product = Product::with('brand', 'category', 'subCategory', 'subSubCategory', 'productQuantity', 'productQuantity.unit', 'productImages')->where('product_id', $id)->get()->first();
         //echo json_encode($product, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-        //exit;  
+        //exit;
         $image_path = $this->getProductImagePathFull();
         return view($this->SHOW, compact('product', 'image_path'));
     }
@@ -339,12 +336,12 @@ class ProductController extends Controller
     public function edit($id)
     {
         $product = Product::find($id);
-        $action  = route('product.updateProduct',$product->product_id);
+        $action  = route('product.updateProduct', $product->product_id);
         $method  = 'POST';
         $submit_text = "UPDATE";
         $is_edit = true;
-        
-        $categories = Category::has('subCategory', '>' , 0)->with('subCategory', 'subCategory.subSubCategory')->get(); 
+
+        $categories = Category::has('subCategory', '>', 0)->with('subCategory', 'subCategory.subSubCategory')->get();
 
         $brands = Brand::all();
         $units = Units::all();
@@ -396,7 +393,7 @@ class ProductController extends Controller
     public function updateProductQuantityStatus($id)
     {
         $request = new Request;
-        $product_quantity = ProductQuantity::find($id); 
+        $product_quantity = ProductQuantity::find($id);
         $request['is_active'] = $this->getInStockStatus($product_quantity->is_active);
         ProductQuantity::find($id)->update($request->all());
         return redirect()->back()->withAlert($this->getUpdate());
@@ -412,7 +409,7 @@ class ProductController extends Controller
     public function updateProductQuantityInStockStatus($id)
     {
         $request = new Request;
-        $product_quantity = ProductQuantity::find($id); 
+        $product_quantity = ProductQuantity::find($id);
         $request['in_stock'] = $this->getInStockStatus($product_quantity->in_stock);
         ProductQuantity::find($id)->update($request->all());
         return redirect()->back()->withAlert($this->getUpdate());
@@ -424,8 +421,8 @@ class ProductController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function addProductImages($id) 
-    { 
+    public function addProductImages($id)
+    {
         $action  = route('product.insertProductImages', $id);
         $method = 'POST';
         return view($this->ADD_IMAGES, compact('action', 'method'));
@@ -437,11 +434,12 @@ class ProductController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function insertProductImages(Request $request, $id) 
+    public function insertProductImages(Request $request, $id)
     {
         $rules = [
-             'product_other_images' => 'required|array',
-             'product_other_images.*' => 'required|image|max:1024'];
+            'product_other_images' => 'required|array',
+            'product_other_images.*' => 'required|image|max:1024'
+        ];
         $validator = Validator::make($request->all(), $rules);
         if ($validator->fails()) {
             return redirect()->back()->withInput($request->input())->withErrors($validator, 'formError');
@@ -450,7 +448,7 @@ class ProductController extends Controller
         try {
             if ($request->hasFile('product_other_images')) {
                 foreach ($request->file('product_other_images') as $key => $addnlImage) {
-                    $file_name = $this->getImageName().'.'.$addnlImage->getClientOriginalExtension();
+                    $file_name = $this->getImageName() . '.' . $addnlImage->getClientOriginalExtension();
                     $addnlImage->move($destinationPath, $file_name);
                     $image_data[] = [
                         'product_id' => $id,
@@ -464,10 +462,10 @@ class ProductController extends Controller
             }
             $error['product_other_images'] = 'Upload Failed';
             return redirect()->back()->withInput($request->input())->withErrors($error, 'formError');
-        }  catch (\Exception $exception) {
-            $error['product_other_images'] = 'Upload Failed '.$exception->getMessage();
+        } catch (\Exception $exception) {
+            $error['product_other_images'] = 'Upload Failed ' . $exception->getMessage();
             return redirect()->back()->withInput($request->input())->withErrors($error, 'formError');
-        }          
+        }
     }
 
     /**
@@ -478,7 +476,7 @@ class ProductController extends Controller
      */
     public function destroyProductOtherImage($id)
     {
-        $product_image = ProductImage::find($id); 
+        $product_image = ProductImage::find($id);
         $file_name = $product_image->product_image;
         $this->deleteFile($this->getImagePath(), $file_name);
         ProductImage::destroy($id);
@@ -520,47 +518,47 @@ class ProductController extends Controller
 
     public function getValidationRules($isUpdate)
     {
-        if($isUpdate) {
+        if ($isUpdate) {
             // Rules to Update
             return [
-             'quantity_id.*' => 'required|numeric',
-             'brand_id' => 'required|numeric',
-             'category_id' => 'required|numeric',
-             'sub_category_id' => 'required|numeric',
-             'sub_sub_category_id' => 'required|numeric',
-             'product_name' => 'required|string',
-             'product_image'=> 'nullable|image|max:1024',
-             'product_description' => 'required|string',
-             'items_multiplier.*'  => 'required|numeric',
-             'product_quantity.*'  => 'required|numeric',
-             'unit_id.*'  => 'required|numeric',
-             'product_price.*'  => 'required|numeric',
-             'product_offer_percent.*'  => 'required|numeric',
-             'product_other_images.*'=> 'nullable|image|max:1024',
+                'quantity_id.*' => 'required|numeric',
+                'brand_id' => 'required|numeric',
+                'category_id' => 'required|numeric',
+                'sub_category_id' => 'required|numeric',
+                'sub_sub_category_id' => 'required|numeric',
+                'product_name' => 'required|string',
+                'product_image' => 'nullable|image|max:1024',
+                'product_description' => 'required|string',
+                'items_multiplier.*'  => 'required|numeric',
+                'product_quantity.*'  => 'required|numeric',
+                'unit_id.*'  => 'required|numeric',
+                'product_price.*'  => 'required|numeric',
+                'product_offer_percent.*'  => 'required|numeric',
+                'product_other_images.*' => 'nullable|image|max:1024',
             ];
-        }
-        else {
+        } else {
             // Rules to Insert
             return [
-             'brand_id' => 'required|numeric',
-             'category_id' => 'required|numeric',
-             'sub_category_id' => 'required|numeric',
-             'sub_sub_category_id' => 'required|numeric',
-             'product_name' => 'required|string',
-             'product_image'=> 'required|image|max:1024',
-             'product_description' => 'required|string',
-             'items_in_stock' => 'required|numeric',
-             'items_multiplier.*'  => 'required|numeric',
-             'product_quantity.*'  => 'required|numeric',
-             'unit_id.*'  => 'required|numeric',
-             'product_price.*'  => 'required|numeric',
-             'product_offer_percent.*'  => 'required|numeric',
-             'product_other_images.*'=> 'nullable|image|max:1024',
+                'brand_id' => 'required|numeric',
+                'category_id' => 'required|numeric',
+                'sub_category_id' => 'required|numeric',
+                'sub_sub_category_id' => 'required|numeric',
+                'product_name' => 'required|string',
+                'product_image' => 'required|image|max:1024',
+                'product_description' => 'required|string',
+                'items_in_stock' => 'required|numeric',
+                'items_multiplier.*'  => 'required|numeric',
+                'product_quantity.*'  => 'required|numeric',
+                'unit_id.*'  => 'required|numeric',
+                'product_price.*'  => 'required|numeric',
+                'product_offer_percent.*'  => 'required|numeric',
+                'product_other_images.*' => 'nullable|image|max:1024',
             ];
         }
     }
 
-    protected function getImagePath() {
+    protected function getImagePath()
+    {
         return  $this->getProductImagePath();
     }
 }

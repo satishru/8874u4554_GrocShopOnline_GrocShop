@@ -65,14 +65,14 @@ class SubCategoryController extends Controller
         $file_name = $this->getImageName().'.'.$image->getClientOriginalExtension();
         if($image->move($this->getCategoryImagePath(), $file_name)) {
             SubCategory::create([
-                'category_id' => $request->category_id,    
-                'sub_category_name' => $request->sub_category_name,    
-                'sub_category_description' => $request->sub_category_description,    
+                'category_id' => $request->category_id,
+                'sub_category_name' => $request->sub_category_name,
+                'sub_category_description' => $request->sub_category_description,
                 'sub_category_image' => $file_name,
-                'meta_tag' => $request->meta_tag,   
-                'meta_desc' => $request->meta_desc,        
+                'meta_tag' => $request->meta_tag,
+                'meta_desc' => $request->meta_desc,
                 'added_by' => $this->getUserId(),
-                'added_ip' => $this->getIp()
+                'added_ip' => $request->ip()
             ]);
             return redirect($this->adminPanel())->withAlert($this->getSuccess());
         } else {
@@ -125,10 +125,11 @@ class SubCategoryController extends Controller
             }
         }
 
+        $ip = $request->ip();
         $request = $request->all();
         $request['sub_category_image'] = $file_name;
         $request['added_by'] = $this->getUserId();
-        $request['added_ip'] = $this->getIp();
+        $request['added_ip'] = $ip;
 
         SubCategory::find($id)->update($request);
         return redirect($this->adminPanel())->withAlert($this->getUpdate());
@@ -169,13 +170,13 @@ class SubCategoryController extends Controller
             return [
                 'category_id' => 'required|numeric',
                 'sub_category_name' => 'required|string|max:500',
-                'sub_category_image'=> 'nullable|image|max:1024' 
-                ]; 
+                'sub_category_image'=> 'nullable|image|max:1024'
+                ];
         } else {
             return [
                 'category_id' => 'required|numeric',
                 'sub_category_name' => 'required|string|max:500',
-                'sub_category_image'=> 'required|image|max:1024' 
+                'sub_category_image'=> 'required|image|max:1024'
             ];
         }
     }

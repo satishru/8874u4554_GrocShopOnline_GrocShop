@@ -15,6 +15,7 @@ use GroceryApp\Models\Category\SubSubCategory;
 use GroceryApp\Models\Product\Product;
 use GroceryApp\Models\Product\ProductQuantity;
 use GroceryApp\Models\Product\ProductImage;
+use Illuminate\Support\Facades\Config;
 
 class ProductApiController extends Controller
 {
@@ -27,13 +28,13 @@ class ProductApiController extends Controller
    * @param  Request  $request
    * @return \Illuminate\Http\Response
    */
-  public function getProducts(Request $request) 
+  public function getProducts(Request $request)
   {
   	  $rules = ['sub_category_id' => 'required|numeric', 'sub_sub_category_id' => 'required|numeric'];
       $validator = Validator::make($request->all(), $rules);
 
       if ($validator->fails()) {
-        $errorData = $this->getErrorArray(\Config::get('constants.error_code.FIELD_ERROR'), "Missing required fields", $validator->errors()->all());
+        $errorData = $this->getErrorArray(Config::get('constants.error_code.FIELD_ERROR'), "Missing required fields", $validator->errors()->all());
         return $this->getApiJson($errorData);
       }
 
@@ -42,7 +43,7 @@ class ProductApiController extends Controller
         ->when($request->sub_sub_category_id > 0,  function ($query) use($request) {
 				   $query->where('sub_sub_category_id', $request->sub_sub_category_id);
 				})
-			  ->orderBy('product_id', 'DESC')->paginate(50); 
+			  ->orderBy('product_id', 'DESC')->paginate(50);
 
   	  return $this->getApiJson($data);
   }
@@ -53,13 +54,13 @@ class ProductApiController extends Controller
    * @param  Request  $request
    * @return \Illuminate\Http\Response
    */
-  public function getProductDetail(Request $request) 
+  public function getProductDetail(Request $request)
   {
   	  $rules = ['product_id' => 'required|numeric'];
       $validator = Validator::make($request->all(), $rules);
 
       if ($validator->fails()) {
-        $errorData = $this->getErrorArray(\Config::get('constants.error_code.FIELD_ERROR'), "Missing required fields", $validator->errors()->all());
+        $errorData = $this->getErrorArray(Config::get('constants.error_code.FIELD_ERROR'), "Missing required fields", $validator->errors()->all());
         return $this->getApiJson($errorData);
       }
 

@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Model;
 use GroceryApp\Models\Category\SubCategory;
 
+use Illuminate\Support\Facades\Config;
+
 class Category extends Model
 {
   use SoftDeletes;
@@ -46,7 +48,7 @@ class Category extends Model
   }
 
   public function getImageFullPathAttribute() {
-    return url(\Config::get('constants.img.IMAGE_DIR').'/'.\Config::get('constants.img.IMAGE_CATEGORY')).'/'.$this->category_image;
+    return url(Config::get('constants.img.IMAGE_DIR').'/'.Config::get('constants.img.IMAGE_CATEGORY')).'/'.$this->category_image;
   }
 
 }

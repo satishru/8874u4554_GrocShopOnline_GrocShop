@@ -4,6 +4,8 @@ namespace GroceryApp\Http\Controllers\Auth;
 
 use GroceryApp\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
@@ -38,7 +40,7 @@ class LoginController extends Controller
     }
 
     /**
-     * Custom logout method 
+     * Custom logout method
      *
      * @param Request
      */

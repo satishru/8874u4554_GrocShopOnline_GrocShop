@@ -58,15 +58,15 @@ class BrandController extends Controller
         if ($validator->fails()) {
             return redirect()->back()->withInput()->withErrors($validator, 'formError');
         }
-        
+
         $image = $request->file('brand_image');
         $file_name = $this->getImageName().'.'.$image->getClientOriginalExtension();
         if($image->move($this->getBrandImagePath(), $file_name)) {
             Brand::create([
-                'brand_name' => $request->brand_name, 
+                'brand_name' => $request->brand_name,
                 'brand_image' => $file_name,
-                'meta_tag' => $request->meta_tag,   
-                'meta_desc' => $request->meta_desc,        
+                'meta_tag' => $request->meta_tag,
+                'meta_desc' => $request->meta_desc,
                 'added_by' => $this->getUserId(),
                 'added_ip' => $this->getIp()
             ]);
@@ -160,12 +160,12 @@ class BrandController extends Controller
         if($isUpdate) {
             return [
                 'brand_name' => 'required|string|max:500',
-                'brand_image'=> 'nullable|image|max:1024' 
-                ]; 
+                'brand_image'=> 'nullable|image|max:1024'
+                ];
         } else {
             return [
                 'brand_name' => 'required|string|max:500',
-                'brand_image'=> 'required|image|max:1024' 
+                'brand_image'=> 'required|image|max:1024'
             ];
         }
     }
